@@ -7,10 +7,12 @@ renderables = {}
 
 function love.load()
     love.graphics.setDefaultFilter("nearest")
-    renderables.stone = Tile:new({path = "Data/StoneBrick.png"})
+    stone = Tile:new({path = "Data/StoneBrick.png",scale = 10})
     
     pleb = Actor:new({speed = 100,path = "Data/Guard.png",name = "pleb",texWidth = 26})
-    -- map = _Map:new({path = "Data/RGBMap.png"})
+    map = _Map:new({path = "Data/RGBMap.png",colorTranslate=
+    {{[1] = 0,[2] = 0,[3] = 0,tile = stone.image}}
+})
 end
 
 
@@ -36,4 +38,5 @@ function love.draw()
     for k,i in pairs(renderables) do
         i:draw(1)
     end
+    map:draw()
 end

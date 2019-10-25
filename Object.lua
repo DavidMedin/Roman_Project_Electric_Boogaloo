@@ -12,9 +12,10 @@ Tile = _class:new({
     path,
     image,
     name,
+    scale,
     walkable = true,
     draw = function(self)
-        love.graphics.draw(self.image,self.x,self.y)
+        love.graphics.draw(self.image,self.x,self.y,0,self.scale,self.scale)
     end,
     new = function(self,o)
         o = o or {}
@@ -50,25 +51,32 @@ function Actor:new(o)
 end
 
 _Map = _class:new({
-    x,y,
+    x,y,scale=10,
     imgWidth,
     imgHeight,
-    colorTranslate, -- is a table
+    colorTranslate = {{tile}}, -- is a table
     path,
     mapImage, --the image to be loaded to read
     mapImageData,
     mapData, --end result data
     draw = function(self)
+        self.imgWidth,self.imgHeight = self.mapImage:getDimensions()
+        for x = 0, self.imgWidth - 1 do
+            for y = 0, self.imgHeight - 1 do
+                local r,g,b = self.mapImageData:getPixel(x,y)
+                for i,v in ipairs(self.colorTranslate) do
+                    if self.colorTranslate[i][1] == r and self.colorTranslate[i][2] == g and self.colorTranslate[i][3] == b then
+                        love.graphics.draw(self.colorTranslate[i].tile,x+self.scale,y+self.scale,0,self.scale) -- problems here
+                    end
+                end
+            end
+        end
     end,
     new = function(self,o)
+        o = o or {}
         o = _Map.parent.new(_Map,o)
         o.mapImage = love.graphics.newImage(o.path)
         o.mapImageData = love.image.newImageData(o.path)
-        o.imgWidth,o.imgHeight = o.mapImage:getDimensions()
-        for x = 0, o.imgWidth - 1 do
-            for y = 0, o.imgHeight - 1 do
-                local r,g,b,a = o.mapImageData:getPixel(x,y)
-            end
-        end
+        return o
     end
 })
