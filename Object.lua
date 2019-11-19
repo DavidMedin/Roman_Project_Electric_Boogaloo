@@ -16,7 +16,7 @@ function _class:new(o)
     setmetatable(o, self)
     self.__index = self
     -- o.__index = self
-    o.parent = self
+    -- o.parent = self
     return o
 end
 Tile = _class:new({
@@ -30,13 +30,19 @@ Tile = _class:new({
     scale=0,
     walkable = true,
     draw = function(self)
+        self.x,self.y = self.image:getDimensions()
         love.graphics.draw(self.image,self.x,self.y,0,self.scale,self.scale)
     end,
     new = function(self,o)
         o = o or {} --stack overflow?
-        print(self.parent)
-        o = self.parent.new(self,o)
+        o = _class.new(self,o)
         o.image = love.graphics.newImage(o.path)
+        if o.world ~= nil then
+            width,height = o.image:getDimensions()
+            o.body = love.physics.newBody(o.world,o.x,o.y,"static")
+            o.shape = love.physics.newRectangleShape(width,height)
+            o.fixture = love.physics.newFixture(o.body,o.shape,1)
+        end
         return o
         -- renderables[o.name] = o.name
     end
@@ -55,25 +61,25 @@ Actor = _class:new({
     y=0,
     draw = function(self,index)
         -- local x,y = self.body:getPosition()
-        x=self.x
-        y=self.y
+        self.x = self.body:getX()
+        self.y = self.body:getY()
         quad = love.graphics.newQuad(self.texWidth*index,0,self.texWidth,self.imgHeight,self.imgWidth,self.imgHeight)
         -- love.graphics.draw(self.image,quad,x,y,0,activeMap:GetScale())
-        love.graphics.draw(self.image,quad,x,y)
+        love.graphics.draw(self.image,quad,self.x,self.y)
     end,
     new = function(self,o)
-        o = Actor.parent.new(Actor,o)
+        o = _class.new(Actor,o)
         -- renderables[o.name] = o
         if o.path ~= nil then
             o.image = love.graphics.newImage(o.path)
         end
-        love.graphics.getDimensions(o.image)
+        love.graphics:getDimensions(o.image)
         o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
         if o.world ~= nil then
-            o.body = love.physics.newBody(activeWorld,o.x,o.y,"dynamic")
+            o.body = love.physics.newBody(o.world,o.x,o.y,"dynamic")
             o.shape = love.physics.newRectangleShape(o.texWidth,o.imgHeight)
             o.fixture = love.physics.newFixture(o.body,o.shape,1)
-                end
+        end
         return o
     end
 })
@@ -113,7 +119,7 @@ _Map = _class:new({
     end,
     new = function(self,o)
         o = o or {}
-        o = _Map.parent.new(_Map,o)
+        o = _class.new(_Map,o) --was Map.parent.new
     
     return o
     end
