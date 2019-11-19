@@ -1,25 +1,41 @@
+ TILESIZE = 8
+ WINDOW_X,WINDOW_Y = love.graphics.getDimensions()
+function love.resize(w,h)
+    WINDOW_X,WINDOW_Y = love.graphics.getDimensions()
+end
+
+local CAT_TILE = 1
+local CAT_WALKABLE = 2
+local CAT_ACTOR = 3
+-- activeMap = map
+activeWorld = world
+
 _class = {}
 function _class:new(o)
     o = o or {}
     setmetatable(o, self)
     self.__index = self
+    -- o.__index = self
     o.parent = self
     return o
 end
 Tile = _class:new({
     x = 0,
     y = 0,
-    path,
-    image,
-    name,
-    scale,
+    path=nil,
+    image=nil,
+    name=nil,
+    fixture=nil,
+    shape=nil,
+    scale=0,
     walkable = true,
     draw = function(self)
         love.graphics.draw(self.image,self.x,self.y,0,self.scale,self.scale)
     end,
     new = function(self,o)
-        o = o or {}
-        o = Tile.parent.new(Tile,o)
+        o = o or {} --stack overflow?
+        print(self.parent)
+        o = self.parent.new(self,o)
         o.image = love.graphics.newImage(o.path)
         return o
         -- renderables[o.name] = o.name
@@ -27,56 +43,78 @@ Tile = _class:new({
 })
 
 Actor = _class:new({
-    name,
-    imgWidth,
-    imgHeight,
-    texWidth,
-    texHeight = 0,
-    image,
-    x = 0,y = 0,
+    name=nil,
+    speed=0,
+    imgWidth=0,
+    imgHeight=0, --img is full file image
+    texWidth=0, --tex is visible width
+    texHeight=0,
+    rectangle=nil, --polygon Shape
+    image=nil,
+    x=0,
+    y=0,
     draw = function(self,index)
+        -- local x,y = self.body:getPosition()
+        x=self.x
+        y=self.y
         quad = love.graphics.newQuad(self.texWidth*index,0,self.texWidth,self.imgHeight,self.imgWidth,self.imgHeight)
-        love.graphics.draw(self.image,quad,self.x,self.y,0,2,2)
+        -- love.graphics.draw(self.image,quad,x,y,0,activeMap:GetScale())
+        love.graphics.draw(self.image,quad,x,y)
+    end,
+    new = function(self,o)
+        o = Actor.parent.new(Actor,o)
+        -- renderables[o.name] = o
+        if o.path ~= nil then
+            o.image = love.graphics.newImage(o.path)
+        end
+        love.graphics.getDimensions(o.image)
+        o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
+        if o.world ~= nil then
+            o.body = love.physics.newBody(activeWorld,o.x,o.y,"dynamic")
+            o.shape = love.physics.newRectangleShape(o.texWidth,o.imgHeight)
+            o.fixture = love.physics.newFixture(o.body,o.shape,1)
+                end
+        return o
     end
 })
---name is required
-function Actor:new(o)
-    o = Actor.parent.new(Actor,o)
-    renderables[o.name] = o
-    if o.path ~= nil then
-        o.image = love.graphics.newImage(o.path)
-    end
-    o.imgWidth,o.imgHeight = o.image:getDimensions()
-    return o
-end
 
 _Map = _class:new({
-    x,y,scale=10,
-    imgWidth,
-    imgHeight,
-    colorTranslate = {{tile}}, -- is a table
-    path,
-    mapImage, --the image to be loaded to read
-    mapImageData,
-    mapData, --end result data
+    x=0,
+    y=0,
+    scale=0,
+    imgWidth=0,
+    imgHeight=0,
+    colorTranslate = {{0,0,0,1,tile=nil}}, -- is a table
+    world=nil,
+    path=nil,
+    mapImage=nil, --the image to be loaded to read
+    mapImageData=nil, --the MapImage's Data
+    tileList=nil, --list of Tiles
+    CalculateScale = function(self)
+        if self.imgWidth == nil then return nil end
+        local scaleX = WINDOW_X/(self.imgWidth*TILESIZE)
+        local scaleY = WINDOW_Y/(self.imgHeight*TILESIZE)
+        local setScale
+        if scaleX<scaleY then setScale=scaleX else setScale=scaleY end
+        return setScale
+    end,
     draw = function(self)
         self.imgWidth,self.imgHeight = self.mapImage:getDimensions()
-        for x = 0, self.imgWidth - 1 do
-            for y = 0, self.imgHeight - 1 do
-                local r,g,b = self.mapImageData:getPixel(x,y)
-                for i,v in ipairs(self.colorTranslate) do
-                    if self.colorTranslate[i][1] == r and self.colorTranslate[i][2] == g and self.colorTranslate[i][3] == b then
-                        love.graphics.draw(self.colorTranslate[i].tile,x+self.scale,y+self.scale,0,self.scale) -- problems here
-                    end
-                end
+        setScale = _Map.CalculateScale(self)
+        for i,v in ipairs(self.tileList) do 
+            -- love.graphics.draw(v.image,v.x,v.y,setScale)
+            for i,v in ipairs(v) do
+                v:draw()
             end
         end
+    end,
+    GetScale = function(self)
+        return self.scale
     end,
     new = function(self,o)
         o = o or {}
         o = _Map.parent.new(_Map,o)
-        o.mapImage = love.graphics.newImage(o.path)
-        o.mapImageData = love.image.newImageData(o.path)
-        return o
+    
+    return o
     end
 })
