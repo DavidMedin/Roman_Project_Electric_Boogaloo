@@ -27,20 +27,22 @@ Tile = _class:new({
     name=nil,
     fixture=nil,
     shape=nil,
-    scale=0,
+    scale=1,
     walkable = true,
     draw = function(self)
-        self.x,self.y = self.image:getDimensions()
-        love.graphics.draw(self.image,self.x,self.y,0,self.scale,self.scale)
+        self.x = self.body:getX()
+        self.y = self.body:getY()
+        love.graphics.draw(self.image,self.x,self.y,0,self.scale)
     end,
     new = function(self,o)
         o = o or {} --stack overflow?
         o = _class.new(self,o)
         o.image = love.graphics.newImage(o.path)
         if o.world ~= nil then
-            width,height = o.image:getDimensions()
+            -- width,height = o.image:getDimensions()
+            local width,height = o.image:getDimensions()
             o.body = love.physics.newBody(o.world,o.x,o.y,"static")
-            o.shape = love.physics.newRectangleShape(width,height)
+            o.shape = love.physics.newRectangleShape(width*o.scale/2,height*o.scale/2,width*o.scale,height*o.scale)
             o.fixture = love.physics.newFixture(o.body,o.shape,1)
         end
         return o
@@ -55,8 +57,11 @@ Actor = _class:new({
     imgHeight=0, --img is full file image
     texWidth=0, --tex is visible width
     texHeight=0,
+    collisionOffsetX=0,
+    collisionOffsetY=0,
     rectangle=nil, --polygon Shape
     image=nil,
+    scale=1,
     x=0,
     y=0,
     draw = function(self,index)
@@ -65,10 +70,10 @@ Actor = _class:new({
         self.y = self.body:getY()
         quad = love.graphics.newQuad(self.texWidth*index,0,self.texWidth,self.imgHeight,self.imgWidth,self.imgHeight)
         -- love.graphics.draw(self.image,quad,x,y,0,activeMap:GetScale())
-        love.graphics.draw(self.image,quad,self.x,self.y)
+        love.graphics.draw(self.image,quad,self.x,self.y,0,self.scale)
     end,
     new = function(self,o)
-        o = _class.new(Actor,o)
+        o = _class.new(self,o)
         -- renderables[o.name] = o
         if o.path ~= nil then
             o.image = love.graphics.newImage(o.path)
@@ -77,7 +82,15 @@ Actor = _class:new({
         o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
         if o.world ~= nil then
             o.body = love.physics.newBody(o.world,o.x,o.y,"dynamic")
-            o.shape = love.physics.newRectangleShape(o.texWidth,o.imgHeight)
+            o.body:setFixedRotation(true)
+            o.shape = love.physics.newRectangleShape(o.texWidth*o.scale/2+
+                                                        (o.collisionOffsetX*o.scale/2),
+                                                    o.imgHeight*o.scale/2+
+                                                        (o.collisionOffsetY*o.scale/2),
+                                                    o.texWidth*o.scale+
+                                                        (o.collisionOffsetX*o.scale),
+                                                    o.imgHeight*o.scale+
+                                                        (o.collisionOffsetY*o.scale))
             o.fixture = love.physics.newFixture(o.body,o.shape,1)
         end
         return o
@@ -119,7 +132,7 @@ _Map = _class:new({
     end,
     new = function(self,o)
         o = o or {}
-        o = _class.new(_Map,o) --was Map.parent.new
+        o = _class.new(self,o) --was Map.parent.new
     
     return o
     end
