@@ -4,11 +4,29 @@ function love.resize(w,h)
     WINDOW_X,WINDOW_Y = love.graphics.getDimensions()
 end
 
-local CAT_TILE = 1
-local CAT_WALKABLE = 2
-local CAT_ACTOR = 3
+local GROUP_TILE = 1
+local GROUP_WALKABLE = 2
+local GROUP_ACTOR = 3
 -- activeMap = map
 activeWorld = world
+
+function AddPhysics(o,bodyMode)
+    o = o or {}
+    if o.world ~= nil then
+        o.body = love.physics.newBody(o.world,o.x,o.y,bodyMode)
+        o.body:setFixedRotation(true)
+        o.shape = love.physics.newRectangleShape(o.texWidth*o.scale/2+
+                                                    (o.collisionOffsetX*o.scale/2),
+                                                o.imgHeight*o.scale/2+
+                                                    (o.collisionOffsetY*o.scale/2),
+                                                o.texWidth*o.scale+
+                                                    (o.collisionOffsetX*o.scale),
+                                                o.imgHeight*o.scale+
+                                                    (o.collisionOffsetY*o.scale))
+        o.fixture = love.physics.newFixture(o.body,o.shape,1)
+    end
+    return o
+end
 
 _class = {}
 function _class:new(o)
@@ -22,12 +40,18 @@ end
 Tile = _class:new({
     x = 0,
     y = 0,
+    imgWidth=0,
+    imgHeight=0, --img is full file image
+    texWidth=0, --tex is visible width
+    texHeight=0,
     path=nil,
     image=nil,
     name=nil,
     fixture=nil,
     shape=nil,
     scale=1,
+    collisionOffsetX=0,
+    collisionOffsetY=0,
     walkable = true,
     draw = function(self)
         self.x = self.body:getX()
@@ -35,15 +59,21 @@ Tile = _class:new({
         love.graphics.draw(self.image,self.x,self.y,0,self.scale)
     end,
     new = function(self,o)
-        o = o or {} --stack overflow?
+        o = o or {}
         o = _class.new(self,o)
         o.image = love.graphics.newImage(o.path)
+        o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
+        if o.texWidth == 0 then
+            o.texWidth = o.imgWidth
+            o.texHeight = o.imgHeight
+        end
+        o = AddPhysics(o,"static")
         if o.world ~= nil then
-            -- width,height = o.image:getDimensions()
-            local width,height = o.image:getDimensions()
-            o.body = love.physics.newBody(o.world,o.x,o.y,"static")
-            o.shape = love.physics.newRectangleShape(width*o.scale/2,height*o.scale/2,width*o.scale,height*o.scale)
-            o.fixture = love.physics.newFixture(o.body,o.shape,1)
+            o.fixture:setCategory(GROUP_TILE)
+            if o.walkable then 
+                o.fixture:setCategory(GROUP_TILE,GROUP_WALKABLE)
+                o.fixture:setMask(GROUP_ACTOR)
+            end
         end
         return o
         -- renderables[o.name] = o.name
@@ -80,19 +110,9 @@ Actor = _class:new({
         end
         love.graphics:getDimensions(o.image)
         o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
-        if o.world ~= nil then
-            o.body = love.physics.newBody(o.world,o.x,o.y,"dynamic")
-            o.body:setFixedRotation(true)
-            o.shape = love.physics.newRectangleShape(o.texWidth*o.scale/2+
-                                                        (o.collisionOffsetX*o.scale/2),
-                                                    o.imgHeight*o.scale/2+
-                                                        (o.collisionOffsetY*o.scale/2),
-                                                    o.texWidth*o.scale+
-                                                        (o.collisionOffsetX*o.scale),
-                                                    o.imgHeight*o.scale+
-                                                        (o.collisionOffsetY*o.scale))
-            o.fixture = love.physics.newFixture(o.body,o.shape,1)
-        end
+        o = AddPhysics(o,"dynamic")
+        o.fixture:setCategory(GROUP_ACTOR)
+        o.fixture:setMask(GROUP_WALKABLE)
         return o
     end
 })

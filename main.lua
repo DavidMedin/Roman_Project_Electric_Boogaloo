@@ -12,14 +12,14 @@ function love.load()
     love.graphics.setDefaultFilter("nearest")
 
     world = love.physics.newWorld(0,0,false);
-    _stone = Tile:new({path = "Data/StoneBrick.png",scale = 5})
+    _stone = Tile:new({path = "Data/StoneBrick.png",scale=5})
     _grass = Tile:new({path="Data/Grass.png",walkable=false,scale=5})
 --     map = _Map:new({path = "Data/RGBMap.png",colorTranslate=
 --     {{[1] = 0,[2] = 0,[3] = 0,[4]=1,tile = stone},
 --     {[1]=1,[2]=0,[3]=0,[4]=1,tile=grass}}
 -- })
     -- activeMap = map
-    pleb = Actor:new({speed = 100,path = "Data/Guard.png",name = "pleb",texWidth = 26,x=80,y=80,world=world,scale=8,collisionOffsetX=-9})
+    pleb = Actor:new({speed = 100,path = "Data/Guard.png",name = "pleb",texWidth = 26,x=80,y=80,world=world,scale=4,collisionOffsetX=-9})
     renderables.pleb = pleb
     -- renderables.map = map
     testGrass = _grass:new({x=100,y=90,world=world})
