@@ -80,6 +80,11 @@ Tile = _class:new({
     end
 })
 
+
+
+
+
+
 Actor = _class:new({
     name=nil,
     speed=0,
@@ -117,6 +122,11 @@ Actor = _class:new({
     end
 })
 
+
+
+
+
+
 _Map = _class:new({
     x=0,
     y=0,
@@ -126,8 +136,8 @@ _Map = _class:new({
     colorTranslate = {{0,0,0,1,tile=nil}}, -- is a table
     world=nil,
     path=nil,
-    mapImage=nil, --the image to be loaded to read
-    mapImageData=nil, --the MapImage's Data
+    image=nil, --the image to be loaded to read
+    imageData=nil, --the MapImage's Data
     tileList=nil, --list of Tiles
     CalculateScale = function(self)
         if self.imgWidth == nil then return nil end
@@ -153,7 +163,19 @@ _Map = _class:new({
     new = function(self,o)
         o = o or {}
         o = _class.new(self,o) --was Map.parent.new
-    
+        o.image = love.graphics.newImage(o.path)
+        o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
+        o.imageData = love.image.newImageData(o.image)
+        for x=0,o.imgWidth-1 do
+            for y=0,o.imgHeight-1 do
+                local r,g,b,a = love.imageData:getPixel(x,y)
+                for i,v in ipairs(o.colorTranslate) do
+                    if v[0]==r and v[1]==g and v[2]==b and v[3]==a then
+                        
+                    end
+                end
+            end
+        end
     return o
     end
 })
