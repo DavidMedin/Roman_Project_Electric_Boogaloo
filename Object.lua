@@ -13,16 +13,16 @@ activeWorld = world
 function AddPhysics(o,bodyMode)
     o = o or {}
     if o.world ~= nil then
-        o.body = love.physics.newBody(o.world,o.x,o.y,bodyMode)
+        o.body = love.physics.newBody(o.world,o.x*o.scale*o.texWidth,o.y*o.scale*o.texHeight,bodyMode)
         o.body:setFixedRotation(true)
         o.shape = love.physics.newRectangleShape(o.texWidth*o.scale/2+
-                                                    (o.collisionOffsetX*o.scale/2),
-                                                o.imgHeight*o.scale/2+
-                                                    (o.collisionOffsetY*o.scale/2),
-                                                o.texWidth*o.scale+
-                                                    (o.collisionOffsetX*o.scale),
-                                                o.imgHeight*o.scale+
-                                                    (o.collisionOffsetY*o.scale))
+                (o.collisionOffsetX*o.scale/2),
+             o.imgHeight*o.scale/2+
+                (o.collisionOffsetY*o.scale/2),
+            o.texWidth*o.scale+
+                (o.collisionOffsetX*o.scale),
+             o.imgHeight*o.scale+
+                (o.collisionOffsetY*o.scale))
         o.fixture = love.physics.newFixture(o.body,o.shape,1)
     end
     return o
@@ -138,7 +138,7 @@ _Map = _class:new({
     path=nil,
     image=nil, --the image to be loaded to read
     imageData=nil, --the MapImage's Data
-    tileList=nil, --list of Tiles
+    tileList={}, --list of Tiles
     CalculateScale = function(self)
         if self.imgWidth == nil then return nil end
         local scaleX = WINDOW_X/(self.imgWidth*TILESIZE)
@@ -148,13 +148,12 @@ _Map = _class:new({
         return setScale
     end,
     draw = function(self)
-        self.imgWidth,self.imgHeight = self.mapImage:getDimensions()
+        self.imgWidth,self.imgHeight = self.image:getDimensions()
         setScale = _Map.CalculateScale(self)
-        for i,v in ipairs(self.tileList) do 
-            -- love.graphics.draw(v.image,v.x,v.y,setScale)
-            for i,v in ipairs(v) do
-                v:draw()
-            end
+        for x=0,self.imgWidth-1 do
+            for y=0,self.imgHeight-1 do
+                 self.tileList[x][y]:draw(1)
+             end
         end
     end,
     GetScale = function(self)
@@ -164,14 +163,16 @@ _Map = _class:new({
         o = o or {}
         o = _class.new(self,o) --was Map.parent.new
         o.image = love.graphics.newImage(o.path)
-        o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
-        o.imageData = love.image.newImageData(o.image)
+        o.imgWidth,o.imgHeight = o.image:getDimensions()
+        -- o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
+        o.imageData = love.image.newImageData(o.path)
         for x=0,o.imgWidth-1 do
+            o.tileList[x] = {}
             for y=0,o.imgHeight-1 do
-                local r,g,b,a = love.imageData:getPixel(x,y)
+                local r,g,b,a = o.imageData:getPixel(x,y)
                 for i,v in ipairs(o.colorTranslate) do
-                    if v[0]==r and v[1]==g and v[2]==b and v[3]==a then
-                        
+                    if v[1]==r and v[2]==g and v[3]==b and v[4]==a then
+                        o.tileList[x][y] = o.colorTranslate[i].tile:new({x=x,y=y,world=o.world})
                     end
                 end
             end
