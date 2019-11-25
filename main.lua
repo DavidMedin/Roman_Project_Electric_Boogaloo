@@ -12,14 +12,14 @@ function love.load()
     love.graphics.setDefaultFilter("nearest")
 
     world = love.physics.newWorld(0,0,false);
-    _stone = Tile:new({path = "Data/StoneBrick.png",scale=5})
-    _grass = Tile:new({path="Data/Grass.png",walkable=false,scale=5})
+    _stone = Tile:new({path = "Data/StoneBrick.png",scale=1})
+    _grass = Tile:new({path="Data/Dirt.png",walkable=false,scale=1})
     map = _Map:new({path = "Data/RGBMap.png",world=world,colorTranslate=
         {{[1] = 0,[2] = 0,[3] = 0,[4]=1,tile=_stone},
         {[1]=1,[2]=0,[3]=0,[4]=1,tile=_grass}}
 })
-    -- activeMap = map
-    pleb = Actor:new({speed = 100,path = "Data/Guard.png",name = "pleb",texWidth = 26,x=1,y=1,world=world,scale=4,collisionOffsetX=-9})
+    activeMap = map
+    pleb = Actor:new({speed = 100,path = "Data/Guard.png",name = "pleb",texWidth = 26,x=1,y=1,world=world,collisionOffsetX=-9,scale=1})
     renderables.pleb = pleb
     renderables.map = map
 end
@@ -47,6 +47,11 @@ function love.update(dt)
     -- pleb.y = pleb.y + y;
 end
 
+function love.resize(w,h)
+    WINDOW_X = w
+    WINDOW_Y = h
+    activeMap.scale = activeMap:FormatedScale()
+end
 
 
 function love.draw()
