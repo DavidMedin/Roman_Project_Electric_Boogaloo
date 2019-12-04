@@ -1,7 +1,7 @@
 require("Object")
 
 
-
+rectangle = nil
 function love.load()
     love.graphics.setPointSize(5)
     love.physics.setMeter(1)
@@ -72,8 +72,6 @@ function love.draw()
     for k,i in pairs(renderables.actors) do
         i:draw(1)
     end
-    
-    
     -- for _,body in pairs(world:getBodies()) do
     --     for _,fixture in pairs(body:getFixtures()) do
     --         local shape = fixture:getShape()

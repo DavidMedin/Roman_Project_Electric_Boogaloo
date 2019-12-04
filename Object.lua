@@ -76,17 +76,33 @@ function NewPhysicsObject(x,y,width,height,type,world)
     object = {}
     object.body = love.physics.newBody(world,x*TILESIZE,y*TILESIZE,type)
     object.shape = love.physics.newPolygonShape(0,0,width*TILESIZE,0,width*TILESIZE,height*TILESIZE,0,height*TILESIZE,0,0)
-    object.fixture = love.physics.newFixtureture(object.body,object.shape,1)
+    object.fixture = love.physics.newFixture(object.body,object.shape,1)
+    return object
 end
-_class = {}
-function _class:new(o)
-    o = o or {}
-    setmetatable(o, self)
-    self.__index = self
-    -- o.__index = self
-    -- o.parent = self
-    return o
-end
+
+
+
+_class = {
+    new = function(self,o)
+        o = o or {}
+        setmetatable(o, self)
+        self.__index = self
+        -- o.__index = self
+        -- o.parent = self
+        return o
+    end
+}
+-- function _class:new(o)
+--     o = o or {}
+--     setmetatable(o, self)
+--     self.__index = self
+--     -- o.__index = self
+--     -- o.parent = self
+--     return o
+-- end
+
+
+
 Tile = _class:new({
     x = 0,
     y = 0,
@@ -308,7 +324,34 @@ _Map = _class:new({
         end
     end,
     OptimizeTile = function(self)
-
+        self.imageDate = love.image.newImageDat(self.path)
+        
+        groups = {}
+        finalGroups = {}
+        for y=0,self.imgHeight-1 do
+            groups[y]={}
+            for x=0,self.imgWidth-1 do
+                local r,g,b,a = self.imageData:getPixel(x,y)
+                for i,v in ipairs(self.colorTranslate) do
+                    if v[1]==r and v[2]==g and v[3]==b and v[4]==a then
+                        local tile = v
+                        local RecentGroup = groups[y][#groups[y]]
+                        local RecentTile = groups[y][#groups[y]][#groups[y][#groups[y]]]
+                        --phase 1
+                            -- if previous tile is not the same, new group
+                            --if is the same, join group
+                        --phase 2
+                            --start at y2, for through y2 and y1
+                                --check if is same type,xstart, and length. if so, then join group in FinalGroup using belong pointer
+                        if #groups[y] == 0 or groups[y][#groups[x]][1]~=tile then
+                            groups[y][#groups[x]+1] = {tile}
+                        else
+                            groups[y][#groups[x]][#groups[y][#groups[x]]]=tile
+                        end
+                    end
+                end
+            end
+        end
     end,
     new = function(self,o)
         o = o or {}
