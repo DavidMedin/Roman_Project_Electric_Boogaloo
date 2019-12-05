@@ -222,6 +222,7 @@ _Map = _class:new({
     image=nil, --the image to be loaded to read
     imageData=nil, --the MapImage's Data
     tileList=nil, --list of Tiles
+    collisionList=nil,
     finalX=0,
     finalY=0,
     body=nil,
@@ -264,6 +265,9 @@ _Map = _class:new({
 
                 self.tileList[x][y]:draw(1)
              end
+        end
+        for k,v in pairs(self.collisionList) do
+            love.graphics.polygon("line",v.body:getWorldPoints(v.shape:getPoints()))
         end
     end,
     SetActive = function(self,active)
@@ -324,7 +328,7 @@ _Map = _class:new({
         end
     end,
     OptimizeTile = function(self)
-        self.imageDate = love.image.newImageDat(self.path)
+        self.imageDate = love.image.newImageData(self.path)
         
         groups = {}
         finalGroups = {}
@@ -334,24 +338,41 @@ _Map = _class:new({
                 local r,g,b,a = self.imageData:getPixel(x,y)
                 for i,v in ipairs(self.colorTranslate) do
                     if v[1]==r and v[2]==g and v[3]==b and v[4]==a then
-                        local tile = v
+                        local tile = v.tile
                         local RecentGroup = groups[y][#groups[y]]
-                        local RecentTile = groups[y][#groups[y]][#groups[y][#groups[y]]]
+                        local RecentTile = groups[y][0] and groups[y] [#groups[y]] [#groups[y][#groups[y]][#groups[y][#groups[y]]]] or nil
                         --phase 1
                             -- if previous tile is not the same, new group
                             --if is the same, join group
                         --phase 2
                             --start at y2, for through y2 and y1
                                 --check if is same type,xstart, and length. if so, then join group in FinalGroup using belong pointer
-                        if #groups[y] == 0 or groups[y][#groups[x]][1]~=tile then
-                            groups[y][#groups[x]+1] = {tile}
+                        if RecentTile~=tile and RecentTile~=nil then
+                            groups[y] [#groups[y]] [#groups[y][#groups[y]][#groups[y][#groups[y]]]+1] = {tile}
+                        elseif groups[y][x] == nil then
+                            groups[y][x] = {}
+                            groups[y][x][1] = tile
                         else
-                            groups[y][#groups[x]][#groups[y][#groups[x]]]=tile
+                            RecentGroup[#RecentGroup+1]=tile
                         end
                     end
                 end
             end
         end
+        self.collisionList=groups
+        self:CreateCollisions()
+    end,
+    CreateCollisions = function(self)
+        finalCollisions = {}
+        for y=0,#self.collisionList do
+            for x=0,#self.collisionList do
+                width=0
+                group = self.collisionList[y][x]
+                finalCollisions[#finalCollisions+1] = NewPhysicsObject(#self.collisionList[y][x]+width,y,#self.collisionList[y][x],1,"static",self.world)
+                width = width + #self.collisionList[y][x]
+            end
+        end
+        self.collisionList = finalCollisions
     end,
     new = function(self,o)
         o = o or {}
@@ -359,6 +380,7 @@ _Map = _class:new({
         o = _class.new(self,o) --was Map.parent.new
         o.image = love.graphics.newImage(o.path)
         o.imgWidth,o.imgHeight = o.image:getDimensions()
+        o.imageData = love.image.newImageData(o.path)
         -- o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
         
         local realitiveX=0
@@ -376,7 +398,8 @@ _Map = _class:new({
         o.finalX=o.x+applyModifyX+realitiveX
         o.finalY=o.y+applyModifyY+realitiveY
 
-       AddMap(o)
-    return o
+        AddMap(o)
+        o:OptimizeTile()
+        return o
     end
 })
