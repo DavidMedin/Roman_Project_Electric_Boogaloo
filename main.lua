@@ -15,7 +15,7 @@ function love.load()
     colorTranslate = {{[1] = 0,[2] = 0,[3] = 0,[4]=1,tile=_stone},
                      {[1]=1,[2]=0,[3]=0,[4]=1,tile=_grass}}
                      
-    -- map = _Map:new({name="map",path = "Data/RGBMap.png",world=world,colorTranslate=colorTranslate,x=0,y=0})
+                     -- map = _Map:new({name="map",path = "Data/RGBMap.png",world=world,colorTranslate=colorTranslate,x=0,y=0})
     -- level1 = _Map:new({name="level1",path="Data/level-1.png",world=world,colorTranslate=colorTranslate,realitiveY=map,modifyY="-height",y=0})
     map = _Map:new({name="Rooms",path="Data/Rooms.png",world=world,colorTranslate=colorTranslate,x=0,y=0})
     map:load(true)
