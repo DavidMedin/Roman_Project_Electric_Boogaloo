@@ -266,9 +266,11 @@ _Map = _class:new({
                 self.tileList[x][y]:draw(1)
              end
         end
-        -- for k,v in pairs(self.collisionList) do
-        --     love.graphics.polygon("line",v.body:getWorldPoints(v.shape:getPoints()))
-        -- end
+        for k,v in pairs(self.collisionList) do
+            if v.tile == _grass then
+                love.graphics.polygon("line",v.body:getWorldPoints(v.shape:getPoints()))
+            end
+        end
     end,
     SetActive = function(self,active)
         if self.loaded == true then
@@ -349,13 +351,16 @@ _Map = _class:new({
                         --phase 2
                             --start at y2, for through y2 and y1
                                 --check if is same type,xstart, and length. if so, then join group in FinalGroup using belong pointer
-                        if groups[y][1]==nil then
+                        if groups[y][1]==nil then --new line
                             groups[y][1]={x=1}
                             groups[y][1][1]={}
                             groups[y][1][1]=tile
+                            if y~=1 then
+                                groups[y-1][#groups[y-1]].width = #groups[y-1][#groups[y-1]]
+                            end
                         elseif RecentTile~=tile then
                             RecentGroup.width = #RecentGroup
-                            groups[y][#groups[y]+1]={tile,x=RecentGroup.x-1+RecentGroup.width}
+                            groups[y][#groups[y]+1]={tile,x=RecentGroup.x+RecentGroup.width}
                         else
                             RecentGroup[RecentTileIndex+1]=tile
                         end
@@ -374,13 +379,24 @@ _Map = _class:new({
         --     end
         --     print("}")
         -- end
+        -- for y=1,#groups do
+        --     total = 0
+        --     for x=1,#groups[y] do
+        --         total = groups[y][x].width
+        --     end
+        --     print(total)
+        -- end
         for y=2,#groups do
             for x=1,#groups[y] do
-                local RecentGroup = groups[y][#groups[y]] --not needed, already wrong here
-                for upper=1,#groups[y][#groups[y]] do
-                    if RecentGroup.width==groups[y-1][upper].width and RecentGroup.x==groups[y-1][upper].x and RecentGroup[1]==groups[y-1][upper][1] then
-                        groups[y-1][upper].child=RecentGroup
-                        RecentGroup.parent=groups[y-1][upper]
+                local CurrentGroup = groups[y][x] --not needed, already wrong here
+                for upper=1,#groups[y-1] do
+                    -- print("|")
+                    -- print(CurrentGroup.width,groups[y-1][upper].width)
+                    -- print(CurrentGroup.x,groups[y-1][upper].x)
+                    -- print(CurrentGroup[1].name,groups[y-1][upper][1].name)
+                    if CurrentGroup.width==groups[y-1][upper].width and CurrentGroup.x==groups[y-1][upper].x and CurrentGroup[1]==groups[y-1][upper][1] then
+                        groups[y-1][upper].child=CurrentGroup
+                        CurrentGroup.parent=groups[y-1][upper]
                     end
                 end
             end
@@ -394,17 +410,19 @@ _Map = _class:new({
         for y=1,#self.collisionList do
             width=0
             for x=1,#self.collisionList[y] do
-                if self.collisionList[y][x].parent~=nil then
+                if self.collisionList[y][x].parent==nil then
                 group = self.collisionList[y][x]
                 --height couting
-                next = nil
+                next = self.collisionList[y][x]
+                
                 height = 0
                 repeat
                     height=height+1
-                    next = self.collisionList[y][x].child
+                    next = next.child
                 until(next==nil)
-
+                print(self.collisionList[y][x][1]==_stone and width or " ")
                 finalCollisions[finalCollisions[1] and #finalCollisions+1 or 1] = NewPhysicsObject(width,y-1,#self.collisionList[y][x],height,"static",self.world)
+                finalCollisions[#finalCollisions].tile = self.collisionList[y][x][1]
                 width = width + #self.collisionList[y][x]
                 end
             end
