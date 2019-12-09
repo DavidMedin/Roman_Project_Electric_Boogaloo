@@ -72,12 +72,14 @@ function love.draw()
     for k,i in pairs(renderables.actors) do
         i:draw(1)
     end
-    -- for _,body in pairs(world:getBodies()) do
-    --     for _,fixture in pairs(body:getFixtures()) do
-    --         local shape = fixture:getShape()
-    --         love.graphics.polygon("line",body:getWorldPoints(shape:getPoints()))
-    --     end
-    -- end
+
+    for _,body in pairs(world:getBodies()) do
+        
+        for _,fixture in pairs(body:getFixtures()) do
+            local shape = fixture:getShape()
+            love.graphics.polygon("line",body:getWorldPoints(shape:getPoints()))
+        end
+    end
     -- love.graphics.setColor(1,0,0)
     -- love.graphics.points(pleb.body:getX(),pleb.body:getY())
     -- love.graphics.setColor(1,1,1)

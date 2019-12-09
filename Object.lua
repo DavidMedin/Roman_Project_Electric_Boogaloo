@@ -266,9 +266,9 @@ _Map = _class:new({
                 self.tileList[x][y]:draw(1)
              end
         end
-        for k,v in pairs(self.collisionList) do
-            love.graphics.polygon("line",v.body:getWorldPoints(v.shape:getPoints()))
-        end
+        -- for k,v in pairs(self.collisionList) do
+        --     love.graphics.polygon("line",v.body:getWorldPoints(v.shape:getPoints()))
+        -- end
     end,
     SetActive = function(self,active)
         if self.loaded == true then
@@ -331,30 +331,56 @@ _Map = _class:new({
         self.imageDate = love.image.newImageData(self.path)
         
         groups = {}
-        finalGroups = {}
-        for y=0,self.imgHeight-1 do
+        for y=1,self.imgHeight-1 do
             groups[y]={}
-            for x=0,self.imgWidth-1 do
-                local r,g,b,a = self.imageData:getPixel(x,y)
+            for x=1,self.imgWidth-1 do
+                local r,g,b,a = self.imageData:getPixel(x-1,y-1)
                 for i,v in ipairs(self.colorTranslate) do
                     if v[1]==r and v[2]==g and v[3]==b and v[4]==a then
                         local tile = v.tile
                         local RecentGroup = groups[y][#groups[y]]
-                        local RecentTile = groups[y][0] and groups[y] [#groups[y]] [#groups[y][#groups[y]][#groups[y][#groups[y]]]] or nil
+                        local RecentTile = groups[y][1] and RecentGroup[#RecentGroup] or nil
+                        local RecentTileIndex = groups[y][1] and #RecentGroup or 0
+                        --groups[y] [#groups[y]] [#groups[y][#groups[y]][#groups[y][#groups[y]]]]
+
                         --phase 1
                             -- if previous tile is not the same, new group
                             --if is the same, join group
                         --phase 2
                             --start at y2, for through y2 and y1
                                 --check if is same type,xstart, and length. if so, then join group in FinalGroup using belong pointer
-                        if RecentTile~=tile and RecentTile~=nil then
-                            groups[y] [#groups[y]] [#groups[y][#groups[y]][#groups[y][#groups[y]]]+1] = {tile}
-                        elseif groups[y][x] == nil then
-                            groups[y][x] = {}
-                            groups[y][x][1] = tile
+                        if groups[y][1]==nil then
+                            groups[y][1]={x=1}
+                            groups[y][1][1]={}
+                            groups[y][1][1]=tile
+                        elseif RecentTile~=tile then
+                            RecentGroup.width = #RecentGroup
+                            groups[y][#groups[y]+1]={tile,x=RecentGroup.x-1+RecentGroup.width}
                         else
-                            RecentGroup[#RecentGroup+1]=tile
+                            RecentGroup[RecentTileIndex+1]=tile
                         end
+                    end
+                end
+            end
+        end
+        -- for y=1,#groups do
+        --     print("{")
+        --     for x=1,#groups[y] do
+        --         print("|")
+        --         for z=1,#groups[y][x] do
+        --             print(groups[y][x][z].width)
+        --         end
+        --         print("|")
+        --     end
+        --     print("}")
+        -- end
+        for y=2,#groups do
+            for x=1,#groups[y] do
+                local RecentGroup = groups[y][#groups[y]] --not needed, already wrong here
+                for upper=1,#groups[y][#groups[y]] do
+                    if RecentGroup.width==groups[y-1][upper].width and RecentGroup.x==groups[y-1][upper].x and RecentGroup[1]==groups[y-1][upper][1] then
+                        groups[y-1][upper].child=RecentGroup
+                        RecentGroup.parent=groups[y-1][upper]
                     end
                 end
             end
@@ -362,14 +388,25 @@ _Map = _class:new({
         self.collisionList=groups
         self:CreateCollisions()
     end,
+
     CreateCollisions = function(self)
         finalCollisions = {}
-        for y=0,#self.collisionList do
-            for x=0,#self.collisionList do
-                width=0
+        for y=1,#self.collisionList do
+            width=0
+            for x=1,#self.collisionList[y] do
+                if self.collisionList[y][x].parent~=nil then
                 group = self.collisionList[y][x]
-                finalCollisions[#finalCollisions+1] = NewPhysicsObject(#self.collisionList[y][x]+width,y,#self.collisionList[y][x],1,"static",self.world)
+                --height couting
+                next = nil
+                height = 0
+                repeat
+                    height=height+1
+                    next = self.collisionList[y][x].child
+                until(next==nil)
+
+                finalCollisions[finalCollisions[1] and #finalCollisions+1 or 1] = NewPhysicsObject(width,y-1,#self.collisionList[y][x],height,"static",self.world)
                 width = width + #self.collisionList[y][x]
+                end
             end
         end
         self.collisionList = finalCollisions
