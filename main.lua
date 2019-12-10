@@ -26,7 +26,10 @@ end
 
 
 function love.update(dt)
+    print("{")
     world:update(dt)
+    print("}")
+    print("...")
     for k,v in pairs(mapList) do
         if pleb.body:isTouching(v.body) then
             v:load(true)
@@ -54,6 +57,7 @@ function love.update(dt)
     pleb.body:setLinearVelocity(x,y)
     -- pleb.x = pleb.x + x;
     -- pleb.y = pleb.y + y;
+    -- print("Memory Used in KB:" .. collectgarbage("count"))
 end
 
 function love.resize(w,h)

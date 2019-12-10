@@ -79,7 +79,15 @@ function NewPhysicsObject(x,y,width,height,type,world)
     object.fixture = love.physics.newFixture(object.body,object.shape,1)
     return object
 end
-
+function TogglePhysicsObject(o,toggle)
+    if o.fixture~=nil then
+        if toggle then
+            o.fixture:setGroupIndex(GROUP_NONE)
+        else 
+            o.fixture:setGroupIndex(GROUP_ALL)
+        end
+    end
+end
 
 
 _class = {
@@ -137,7 +145,7 @@ Tile = _class:new({
     new = function(self,o)
         o = o or {}
         o = _class.new(self,o)
-        o.image = love.graphics.newImage(o.path)
+        if o.tile == nil then o.image = love.graphics.newImage(o.path) end
         o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
         if o.texWidth == 0 then
             o.texWidth = o.imgWidth
@@ -257,35 +265,36 @@ _Map = _class:new({
         self.imgWidth,self.imgHeight = self.image:getDimensions()
         for x=0,self.imgWidth-1 do
             for y=0,self.imgHeight-1 do
-
-                -- love.graphics.setColor(1,1,1)
-                -- if pleb.body:isTouching(self.tileList[x][y].body) then
-                --     love.graphics.setColor(1,0,0)
-                -- end
-
                 self.tileList[x][y]:draw(1)
              end
         end
-        for k,v in pairs(self.collisionList) do
-            if v.tile == _grass then
-                love.graphics.polygon("line",v.body:getWorldPoints(v.shape:getPoints()))
-            end
-        end
+        -- for k,v in pairs(self.collisionList) do
+        --     if v.tile == _grass then
+        --         love.graphics.polygon("line",v.body:getWorldPoints(v.shape:getPoints()))
+        --     end
+        -- end
     end,
     SetActive = function(self,active)
         if self.loaded == true then
             if activeMap==self then return end
             if activeMap ~= nil then
-                for x=0,activeMap.imgWidth-1 do
-                    for y=0,activeMap.imgHeight-1 do
-                        activeMap.tileList[x][y]:Enable(false)
-                    end
+                -- for x=0,activeMap.imgWidth-1 do
+                --     for y=0,activeMap.imgHeight-1 do
+                --         activeMap.tileList[x][y]:Enable(false)
+                --     end
+                -- end
+                for i=1,#activeMap.collisionList do
+                    TogglePhysicsObject(activeMap.collisionList[i],false)
                 end
             end
-            for x=0,self.imgWidth-1 do
-                for y=0,self.imgHeight-1 do
-                    self.tileList[x][y]:Enable(true)
-                end
+            -- for x=0,self.imgWidth-1 do
+            --     for y=0,self.imgHeight-1 do
+            --         self.tileList[x][y]:Enable(true)
+            --     end
+            -- end
+            for i=1,#self.collisionList do
+                -- print(self.collisionList[i].fixture:getCategory())
+                TogglePhysicsObject(self.collisionList[i],true)
             end
             activeMap=self
             renderables.activeMap = self
@@ -368,32 +377,12 @@ _Map = _class:new({
                 end
             end
         end
-        -- for y=1,#groups do
-        --     print("{")
-        --     for x=1,#groups[y] do
-        --         print("|")
-        --         for z=1,#groups[y][x] do
-        --             print(groups[y][x][z].width)
-        --         end
-        --         print("|")
-        --     end
-        --     print("}")
-        -- end
-        -- for y=1,#groups do
-        --     total = 0
-        --     for x=1,#groups[y] do
-        --         total = groups[y][x].width
-        --     end
-        --     print(total)
-        -- end
+       
         for y=2,#groups do
             for x=1,#groups[y] do
-                local CurrentGroup = groups[y][x] --not needed, already wrong here
+                local CurrentGroup = groups[y][x]
                 for upper=1,#groups[y-1] do
-                    -- print("|")
-                    -- print(CurrentGroup.width,groups[y-1][upper].width)
-                    -- print(CurrentGroup.x,groups[y-1][upper].x)
-                    -- print(CurrentGroup[1].name,groups[y-1][upper][1].name)
+                    
                     if CurrentGroup.width==groups[y-1][upper].width and CurrentGroup.x==groups[y-1][upper].x and CurrentGroup[1]==groups[y-1][upper][1] then
                         groups[y-1][upper].child=CurrentGroup
                         CurrentGroup.parent=groups[y-1][upper]
@@ -411,20 +400,27 @@ _Map = _class:new({
             width=0
             for x=1,#self.collisionList[y] do
                 if self.collisionList[y][x].parent==nil then
-                group = self.collisionList[y][x]
-                --height couting
-                next = self.collisionList[y][x]
-                
-                height = 0
-                repeat
-                    height=height+1
-                    next = next.child
-                until(next==nil)
-                print(self.collisionList[y][x][1]==_stone and width or " ")
-                finalCollisions[finalCollisions[1] and #finalCollisions+1 or 1] = NewPhysicsObject(width,y-1,#self.collisionList[y][x],height,"static",self.world)
-                finalCollisions[#finalCollisions].tile = self.collisionList[y][x][1]
-                width = width + #self.collisionList[y][x]
+                    group = self.collisionList[y][x]
+                    --height couting
+                    next = self.collisionList[y][x]
+                    
+                    height = 0
+                    repeat
+                        height=height+1
+                        next = next.child
+                    until(next==nil)
+                    finalCollisions[finalCollisions[1] and #finalCollisions+1 or 1] = NewPhysicsObject(width,y-1,#self.collisionList[y][x],height,"static",self.world)
+                    finalCollisions[#finalCollisions].tile = self.collisionList[y][x][1]
+
+                    finalCollisions[#finalCollisions].fixture:setCategory(CATA_TILE)
+                    finalCollisions[#finalCollisions].fixture:setGroupIndex(GROUP_ALL)
+                    if self.collisionList[y][x][1].walkable then 
+                        finalCollisions[#finalCollisions].fixture:setCategory(CATA_TILE,CATA_WALKABLE)
+                        finalCollisions[#finalCollisions].fixture:setMask(CATA_ACTOR)
+                    end
+
                 end
+                width = width + #self.collisionList[y][x]
             end
         end
         self.collisionList = finalCollisions
