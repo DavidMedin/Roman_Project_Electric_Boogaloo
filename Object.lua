@@ -224,7 +224,7 @@ _Map = _class:new({
     scale=0,
     imgWidth=0,
     imgHeight=0,
-    colorTranslate = {{0,0,0,1,tile=nil}}, -- is a table
+    colorTranslate = {{0,0,0,1,tile=nil}}, -- is a table, trouble, don't intialize here
     world=nil,
     path=nil,
     image=nil, --the image to be loaded to read
@@ -241,6 +241,7 @@ _Map = _class:new({
     modifyX=nil, --is a string
     modifyY=nil, --is a string
     loaded=false,
+    spriteBatches=nil,
     FormatedScale = function(self)
         local WINDOW_X,WINDOW_Y = love.window.getMode()
         local setScale = 1
@@ -263,45 +264,26 @@ _Map = _class:new({
     end,
     draw = function(self)
         self.imgWidth,self.imgHeight = self.image:getDimensions()
-        for x=0,self.imgWidth-1 do
-            for y=0,self.imgHeight-1 do
-                self.tileList[x][y]:draw(1)
-             end
+        CentX,CentY = activeMap:CenterScreen()
+        for k,v in pairs(self.spriteBatches) do
+            love.graphics.draw(v,self.scale+CentX,self.scale+CentY,0,activeMap.scale)
         end
-        -- for k,v in pairs(self.collisionList) do
-        --     if v.tile == _grass then
-        --         love.graphics.polygon("line",v.body:getWorldPoints(v.shape:getPoints()))
-        --     end
-        -- end
     end,
     SetActive = function(self,active)
         if self.loaded == true then
             if activeMap==self then return end
             if activeMap ~= nil then
-                -- for x=0,activeMap.imgWidth-1 do
-                --     for y=0,activeMap.imgHeight-1 do
-                --         activeMap.tileList[x][y]:Enable(false)
-                --     end
-                -- end
                 for i=1,#activeMap.collisionList do
                     TogglePhysicsObject(activeMap.collisionList[i],false)
                 end
             end
-            -- for x=0,self.imgWidth-1 do
-            --     for y=0,self.imgHeight-1 do
-            --         self.tileList[x][y]:Enable(true)
-            --     end
-            -- end
             for i=1,#self.collisionList do
-                -- print(self.collisionList[i].fixture:getCategory())
                 TogglePhysicsObject(self.collisionList[i],true)
             end
             activeMap=self
             renderables.activeMap = self
             camX=-self.finalX*self:FormatedScale()
             camY=-self.finalY*self:FormatedScale()
-            -- camX=-self.finalX
-            -- camY=-self.finalY
         else
             print("Don't try to activate a map before loading it!!")
         end
@@ -320,13 +302,18 @@ _Map = _class:new({
                 -- print("map already loaded!")
             else
                 self.imageData = love.image.newImageData(self.path)
+                self.spriteBatches = {}
                 for x=0,self.imgWidth-1 do
                     self.tileList[x] = {}
                     for y=0,self.imgHeight-1 do
                         local r,g,b,a = self.imageData:getPixel(x,y)
                         for i,v in ipairs(self.colorTranslate) do
                             if v[1]==r and v[2]==g and v[3]==b and v[4]==a then
-                                self.tileList[x][y] = self.colorTranslate[i].tile:new({x=x+(self.finalX/TILESIZE),y=y+(self.finalY/TILESIZE),world=self.world})
+                                if self.spriteBatches[r..g..b..a] == nil then self.spriteBatches[r..g..b..a] = love.graphics.newSpriteBatch(v.tile.image,4096) --change 4096 to be width*height
+                                end
+                                    self.spriteBatches[r..g..b..a]:add(self.finalX+x*TILESIZE,self.finalY+y*TILESIZE) -- can return an id if needed
+                                -- self.tileList[x][y] = self.colorTranslate[i].tile:new({x=x+(self.finalX/TILESIZE),y=y+(self.finalY/TILESIZE),world=self.world})
+                                
                                 self.scale = self:FormatedScale()
                             end
                         end
@@ -352,7 +339,6 @@ _Map = _class:new({
                         local RecentGroup = groups[y][#groups[y]]
                         local RecentTile = groups[y][1] and RecentGroup[#RecentGroup] or nil
                         local RecentTileIndex = groups[y][1] and #RecentGroup or 0
-                        --groups[y] [#groups[y]] [#groups[y][#groups[y]][#groups[y][#groups[y]]]]
 
                         --phase 1
                             -- if previous tile is not the same, new group
@@ -401,7 +387,7 @@ _Map = _class:new({
             for x=1,#self.collisionList[y] do
                 if self.collisionList[y][x].parent==nil then
                     group = self.collisionList[y][x]
-                    --height couting
+                    --height counting
                     next = self.collisionList[y][x]
                     
                     height = 0

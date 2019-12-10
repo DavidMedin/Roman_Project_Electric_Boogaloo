@@ -15,28 +15,28 @@ function love.load()
     colorTranslate = {{[1] = 0,[2] = 0,[3] = 0,[4]=1,tile=_stone},
                      {[1]=1,[2]=0,[3]=0,[4]=1,tile=_grass}}
                      
-                     -- map = _Map:new({name="map",path = "Data/RGBMap.png",world=world,colorTranslate=colorTranslate,x=0,y=0})
-    -- level1 = _Map:new({name="level1",path="Data/level-1.png",world=world,colorTranslate=colorTranslate,realitiveY=map,modifyY="-height",y=0})
-    map = _Map:new({name="Rooms",path="Data/Rooms.png",world=world,colorTranslate=colorTranslate,x=0,y=0})
-    map:load(true)
-    map:SetActive(true)
+                     -- level_1 = _Map:new({name="level_1",path = "Data/RGBMap.png",world=world,colorTranslate=colorTranslate,x=0,y=0})
+    -- level1 = _Map:new({name="level1",path="Data/level-1.png",world=world,colorTranslate=colorTranslate,realitiveY=level_1,modifyY="-height",y=0})
+    level_1 = _Map:new({name="Level_1",path="Data/Rooms.png",world=world,colorTranslate=colorTranslate,x=0,y=0})
+    -- level_2 = _Map:new({name="Level_2",path="Data/Level-1.png",world=world,colorTranslate=colorTranslate,realitiveY=level_1,modifyY="height",y=0,realitiveX=level_1,x=11})
+    level_1:load(true)
+    level_1:SetActive(true)
     pleb = Actor:new({speed = 100,path = "Data/Guard.png",name = "pleb",texWidth = 26,x=6,y=1,world=world,collisionOffsetX=-9,scale=1})
     AddActorRenderables(pleb)
 end
 
 
 function love.update(dt)
-    print("{")
     world:update(dt)
-    print("}")
-    print("...")
-    for k,v in pairs(mapList) do
-        if pleb.body:isTouching(v.body) then
-            v:load(true)
-        else
-            v:load(false)
-        end
-    end
+    -- for k,v in pairs(mapList) do
+    --     for _,collision in pairs(v.collisionList) do
+    --         if pleb.body:isTouching(collision.body) then
+    --             v:load(true)
+    --         else
+    --             v:load(false)
+    --         end
+    --     end
+    -- end
     
     if #GetLoaded() == 1 then
         GetLoaded()[1]:SetActive(true)
@@ -77,27 +77,8 @@ function love.draw()
         i:draw(1)
     end
 
-    -- for _,body in pairs(world:getBodies()) do
-        
-    --     for _,fixture in pairs(body:getFixtures()) do
-    --         local shape = fixture:getShape()
-    --         love.graphics.polygon("line",body:getWorldPoints(shape:getPoints()))
-    --     end
-    -- end
-    -- love.graphics.setColor(1,0,0)
-    -- love.graphics.points(pleb.body:getX(),pleb.body:getY())
-    -- love.graphics.setColor(1,1,1)
-    
-    
-    -- love.graphics.translate(camX,camY)
-    -- love.graphics.setColor(1,0,0)
-    -- if pleb.body:isTouching(map.body) then love.graphics.setColor(1,1,1) end
-    -- love.graphics.polygon("line",map.body:getWorldPoints(map.shape:getPoints()))
-    -- love.graphics.polygon("line",pleb.body:getWorldPoints(pleb.shape:getPoints()))
-    -- love.graphics.setColor(1,0,1)
-    -- if pleb.body:isTouching(level1.body) then love.graphics.setColor(1,1,1) end
+    for k,v in pairs(activeMap.collisionList) do
+        love.graphics.polygon(v.body:getPoints())
+    end
 
-    -- love.graphics.polygon("line",level1.body:getWorldPoints(level1.shape:getPoints()))
-    -- love.graphics.setColor(1,1,1)
-    -- love.graphics.translate(-camX,-camY)
 end
