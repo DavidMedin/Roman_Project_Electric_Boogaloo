@@ -54,8 +54,7 @@ function love.update(dt)
         y = y + pleb.speed
     end
     pleb.body:setLinearVelocity(x,y)
-    -- pleb.x = pleb.x + x;
-    -- pleb.y = pleb.y + y;
+    print(activeMap.finalX,activeMap.finalY,":",activeMap.body:getWorldPoints(activeMap.shape:getPoints()))
     -- print("Memory Used in KB:" .. collectgarbage("count"))
 end
 

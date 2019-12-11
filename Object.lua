@@ -268,6 +268,11 @@ _Map = _class:new({
         for k,v in pairs(self.spriteBatches) do
             love.graphics.draw(v,self.scale+CentX,self.scale+CentY,0,activeMap.scale)
         end
+        -- love.graphics.translate(-camX,-camY+50)
+        -- for k,v in pairs(self.collisionList) do
+        --     love.graphics.polygon("line",v.body:getWorldPoints(v.shape:getPoints()))
+        -- end
+        -- love.graphics.translate(camX,camY-50)
     end,
     SetActive = function(self,active)
         if self.loaded == true then
@@ -395,7 +400,7 @@ _Map = _class:new({
                         height=height+1
                         next = next.child
                     until(next==nil)
-                    finalCollisions[finalCollisions[1] and #finalCollisions+1 or 1] = NewPhysicsObject(width+self.finalX,y-1+self.finalY,#self.collisionList[y][x],height,"static",self.world)
+                    finalCollisions[finalCollisions[1] and #finalCollisions+1 or 1] = NewPhysicsObject(width+(self.finalX/TILESIZE),y-1+(self.finalY/TILESIZE),#self.collisionList[y][x],height,"static",self.world)
                     finalCollisions[#finalCollisions].tile = self.collisionList[y][x][1]
 
                     finalCollisions[#finalCollisions].fixture:setCategory(CATA_TILE)
