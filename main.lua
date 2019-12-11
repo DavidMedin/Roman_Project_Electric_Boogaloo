@@ -18,7 +18,8 @@ function love.load()
                      -- level_1 = _Map:new({name="level_1",path = "Data/RGBMap.png",world=world,colorTranslate=colorTranslate,x=0,y=0})
     -- level1 = _Map:new({name="level1",path="Data/level-1.png",world=world,colorTranslate=colorTranslate,realitiveY=level_1,modifyY="-height",y=0})
     level_1 = _Map:new({name="Level_1",path="Data/Rooms.png",world=world,colorTranslate=colorTranslate,x=0,y=0})
-    -- level_2 = _Map:new({name="Level_2",path="Data/Level-1.png",world=world,colorTranslate=colorTranslate,realitiveY=level_1,modifyY="height",y=0,realitiveX=level_1,x=11})
+    level_2 = _Map:new({name="Level_2",path="Data/Level-1.png",world=world,colorTranslate=colorTranslate,realitiveY=level_1,y=level_1.imgHeight*8,realitiveX=level_1,x=-12*8})
+    -- level_2 = _Map:new({name="Level_2",path="Data/Level-1.png",world=world,colorTranslate=colorTranslate,y=0,x=0})
     level_1:load(true)
     level_1:SetActive(true)
     pleb = Actor:new({speed = 100,path = "Data/Guard.png",name = "pleb",texWidth = 26,x=6,y=1,world=world,collisionOffsetX=-9,scale=1})
@@ -28,15 +29,13 @@ end
 
 function love.update(dt)
     world:update(dt)
-    -- for k,v in pairs(mapList) do
-    --     for _,collision in pairs(v.collisionList) do
-    --         if pleb.body:isTouching(collision.body) then
-    --             v:load(true)
-    --         else
-    --             v:load(false)
-    --         end
-    --     end
-    -- end
+    for k,v in pairs(mapList) do
+        if pleb.body:isTouching(v.body) then
+            v:load(true)
+        else
+            v:load(false)
+        end
+    end
     
     if #GetLoaded() == 1 then
         GetLoaded()[1]:SetActive(true)
@@ -76,9 +75,11 @@ function love.draw()
     for k,i in pairs(renderables.actors) do
         i:draw(1)
     end
-
-    for k,v in pairs(activeMap.collisionList) do
-        love.graphics.polygon(v.body:getPoints())
-    end
-
+    -- love.graphics.translate(-camX,-camY-50)
+    -- for k,v in pairs(world:getBodies()) do
+    --     love.graphics.polygon("line",v:getWorldPoints(v:getFixtures()[1]:getShape():getPoints()))
+    -- end
+    -- love.graphics.polygon("line",level_1.body:getWorldPoints(level_1.shape:getPoints()))
+    -- love.graphics.polygon("line",pleb.body:getWorldPoints(pleb.shape:getPoints()))
+    -- love.graphics.polygon("line",level_2.body:getWorldPoints(level_2.shape:getPoints()))
 end
