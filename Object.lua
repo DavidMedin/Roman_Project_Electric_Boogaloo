@@ -190,7 +190,8 @@ Actor = _class:new({
         self.y = self.body:getY()
         quad = love.graphics.newQuad(self.texWidth*index,0,self.texWidth,self.imgHeight,self.imgWidth,self.imgHeight)
         -- love.graphics.draw(self.image,quad,x,y,0,activeMap:GetScale())
-        CentX,CentY = activeMap:CenterScreen()
+        CentX,CentY = 0,0
+        -- CentX,CentY = activeMap:CenterScreen()
         love.graphics.draw(self.image,quad,self.x*activeMap.scale+CentX,self.y*activeMap.scale+CentY,0,self.scale*activeMap.scale)
     
     end,
@@ -250,6 +251,7 @@ _Map = _class:new({
         else 
             setScale = WINDOW_X/(self.imgWidth*8)
         end
+        -- setScale = setScale<2 and 2 or setScale
         return setScale
     end,
     CenterScreen = function(self)
@@ -264,7 +266,8 @@ _Map = _class:new({
     end,
     draw = function(self)
         self.imgWidth,self.imgHeight = self.image:getDimensions()
-        CentX,CentY = activeMap:CenterScreen()
+        CentX,CentY = 0,0
+        -- CentX,CentY = activeMap:CenterScreen()
         for k,v in pairs(self.spriteBatches) do
             love.graphics.draw(v,self.scale+CentX,self.scale+CentY,0,activeMap.scale)
         end
@@ -319,12 +322,12 @@ _Map = _class:new({
                                     self.spriteBatches[r..g..b..a]:add(self.finalX+x*TILESIZE,self.finalY+y*TILESIZE) -- can return an id if needed
                                 -- self.tileList[x][y] = self.colorTranslate[i].tile:new({x=x+(self.finalX/TILESIZE),y=y+(self.finalY/TILESIZE),world=self.world})
                                 
-                                self.scale = self:FormatedScale()
                             end
                         end
                     end
                 end
             end
+            self.scale = self:FormatedScale()
             self.loaded = true
         else
             self.loaded=false

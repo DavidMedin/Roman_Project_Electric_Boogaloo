@@ -5,6 +5,7 @@ rectangle = nil
 function love.load()
     love.graphics.setPointSize(5)
     love.physics.setMeter(1)
+    love.window.setTitle("Revenge of the Pleb")
     love.window.setMode(800,500,{resizable=true})
     love.graphics.setDefaultFilter("nearest")
     world = love.physics.newWorld(0,0,true);
@@ -55,6 +56,8 @@ function love.update(dt)
     end
     pleb.body:setLinearVelocity(x,y)
     -- print("Memory Used in KB:" .. collectgarbage("count"))
+
+    
 end
 
 function love.resize(w,h)
