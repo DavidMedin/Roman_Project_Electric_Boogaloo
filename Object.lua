@@ -1,5 +1,8 @@
- TILESIZE = 8
- WINDOW_X,WINDOW_Y = love.graphics.getDimensions()
+TILESIZE = 8
+WINDOW_X,WINDOW_Y = love.graphics.getDimensions()
+GlobalCanvas = love.graphics.newCanvas()
+PlebRectangle = nil
+rectangleWidth = 100
 function love.resize(w,h)
     WINDOW_X,WINDOW_Y = love.graphics.getDimensions()
 end
@@ -190,9 +193,7 @@ Actor = _class:new({
         self.y = self.body:getY()
         quad = love.graphics.newQuad(self.texWidth*index,0,self.texWidth,self.imgHeight,self.imgWidth,self.imgHeight)
         -- love.graphics.draw(self.image,quad,x,y,0,activeMap:GetScale())
-        CentX,CentY = 0,0
-        -- CentX,CentY = activeMap:CenterScreen()
-        love.graphics.draw(self.image,quad,self.x*activeMap.scale+CentX,self.y*activeMap.scale+CentY,0,self.scale*activeMap.scale)
+        love.graphics.draw(self.image,quad,self.x*activeMap.scale,self.y*activeMap.scale,0,self.scale*activeMap.scale)
     
     end,
     new = function(self,o)
@@ -290,8 +291,9 @@ _Map = _class:new({
             end
             activeMap=self
             renderables.activeMap = self
-            camX=-self.finalX*self:FormatedScale()
-            camY=-self.finalY*self:FormatedScale()
+            local centX,centY = self:CenterScreen()
+            camX=-self.finalX*self:FormatedScale()+centX
+            camY=-self.finalY*self:FormatedScale()+centY
         else
             print("Don't try to activate a map before loading it!!")
         end
