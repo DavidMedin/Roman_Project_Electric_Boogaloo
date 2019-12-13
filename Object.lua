@@ -432,8 +432,8 @@ _Map = _class:new({
         
         local realitiveX=0
         local realitiveY=0
-        if o.realitiveX~=nil then realitiveX=o.realitiveX.x end
-        if o.realitiveY~=nil then realitiveY=o.realitiveY.y end
+        if o.realitiveX~=nil then realitiveX=o.realitiveX.finalX end
+        if o.realitiveY~=nil then realitiveY=o.realitiveY.finalY end
         local applyModifyX=0
         local applyModifyY=0
         if o.modifyX ~= nil and string.find(o.modifyX,"width")~=nil then applyModifyX=o.imgWidth*TILESIZE if string.find(o.modifyX,"-")~=nil then applyModifyX=applyModifyX*-1 end end
