@@ -185,15 +185,20 @@ Actor = _class:new({
     rectangle=nil, --polygon Shape
     image=nil,
     scale=1,
+    noPhysics=false,
     x=0,
     y=0,
     draw = function(self,index)
         -- local x,y = self.body:getPosition()
-        self.x = self.body:getX()
-        self.y = self.body:getY()
+        self.x = self.noPhysics ~= true and self.body:getX() or self.x
+        self.y = self.noPhysics ~= true and self.body:getY() or self.y
         quad = love.graphics.newQuad(self.texWidth*index,0,self.texWidth,self.imgHeight,self.imgWidth,self.imgHeight)
         -- love.graphics.draw(self.image,quad,x,y,0,activeMap:GetScale())
         love.graphics.draw(self.image,quad,self.x*activeMap.scale,self.y*activeMap.scale,0,self.scale*activeMap.scale)
+        -- love.graphics.translate(-camX,-camY+50)
+
+        -- love.graphics.polygon("line",self.body:getWorldPoints(self.shape:getPoints()))
+        -- love.graphics.translate(camX,camY-50)
     
     end,
     new = function(self,o)
@@ -204,13 +209,16 @@ Actor = _class:new({
         end
         love.graphics:getDimensions(o.image)
         o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
-        o = AddPhysics(o,"dynamic")
-        o.sensorShape = love.physics.newPolygonShape(o.shape:getPoints())
-        o.sensor = love.physics.newFixture(o.body,o.sensorShape,1)
-        o.sensor:setSensor(true)
-        o.fixture:setCategory(CATA_ACTOR)
-        o.fixture:setMask(CATA_WALKABLE)
-        o.fixture:setGroupIndex(GROUP_ALL)
+        if o.noPhysics ~= true then
+            o = AddPhysics(o,"dynamic")
+            print(o.name)
+            o.sensorShape = love.physics.newPolygonShape(o.shape:getPoints())
+            o.sensor = love.physics.newFixture(o.body,o.sensorShape,1)
+            o.sensor:setSensor(true)
+            o.fixture:setCategory(CATA_ACTOR)
+            o.fixture:setMask(CATA_WALKABLE)
+            o.fixture:setGroupIndex(GROUP_ALL)
+        end
         return o
     end
 })
