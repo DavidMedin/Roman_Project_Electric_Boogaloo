@@ -211,7 +211,6 @@ Actor = _class:new({
         o.imgWidth,o.imgHeight = o.image.getDimensions(o.image)
         if o.noPhysics ~= true then
             o = AddPhysics(o,"dynamic")
-            print(o.name)
             o.sensorShape = love.physics.newPolygonShape(o.shape:getPoints())
             o.sensor = love.physics.newFixture(o.body,o.sensorShape,1)
             o.sensor:setSensor(true)
@@ -280,7 +279,7 @@ _Map = _class:new({
         for k,v in pairs(self.spriteBatches) do
             love.graphics.draw(v,self.scale+CentX,self.scale+CentY,0,activeMap.scale)
         end
-        -- love.graphics.translate(-camX,-camY+50)
+        -- -- love.graphics.translate(-camX,-camY+50)
         -- for k,v in pairs(self.collisionList) do
         --     love.graphics.polygon("line",v.body:getWorldPoints(v.shape:getPoints()))
         -- end
